@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
 import { existsSync } from "fs";
+import { getGeneratedDir } from "@/lib/storage";
 
 export async function GET(
   req: NextRequest,
@@ -10,7 +11,7 @@ export async function GET(
   try {
     const { filename } = await params;
     const decodedFileName = decodeURIComponent(filename);
-    const filePath = path.join(process.cwd(), "generated", decodedFileName);
+    const filePath = path.join(getGeneratedDir(), decodedFileName);
 
     if (!existsSync(filePath)) {
       return NextResponse.json(

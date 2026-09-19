@@ -5,6 +5,8 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import crypto from "crypto";
 
+import { getUploadsDir, getGeneratedDir } from "@/lib/storage";
+
 const execFileAsync = promisify(execFile);
 
 function sanitizeFileName(name: string): string {
@@ -20,11 +22,8 @@ export async function POST(req: NextRequest) {
     const year = data.brand?.year || new Date().getFullYear();
 
     const fileName = `${brandName}_${projectName}_Creative_Framework_${year}.pptx`;
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    const generatedDir = path.join(process.cwd(), "generated");
-
-    await mkdir(uploadsDir, { recursive: true });
-    await mkdir(generatedDir, { recursive: true });
+    const uploadsDir = getUploadsDir();
+    const generatedDir = getGeneratedDir();
 
     // Map relative upload URLs to absolute filesystem paths for Python engine
     const processImages = (images: string[]) => {

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { getUploadsDir } from "@/lib/storage";
 
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(req: NextRequest) {
@@ -18,9 +18,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    const isImage = file.type.startsWith("image/") || file.name.match(/\.(png|jpe?g|webp|svg|gif|bmp)$/i);
+    if (!isImage) {
       return NextResponse.json(
-        { error: "Invalid file type. Only JPG, PNG, and WEBP are supported." },
+        { error: "Invalid file type. Only image files (PNG, JPG, WEBP, SVG) are supported." },
         { status: 400 }
       );
     }
@@ -35,12 +36,11 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    await mkdir(uploadsDir, { recursive: true });
+    const uploadsDir = getUploadsDir();
 
     const ext = path.extname(file.name) || ".jpg";
     const filename = `${crypto.randomBytes(8).toString("hex")}${ext}`;
-    const filePath = path.join(uploadsDir, filename);
+    const filePath = path.join(/*turbopackIgnore: true*/ uploadsDir, filename);
 
     await writeFile(filePath, buffer);
 
