@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: #FCF9F2;
+  --foreground: #111111;
+  --primary-crimson: #C41E24;
+  --accent-yellow: #FFE800;
+  --accent-cobalt: #1F40E6;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Typography Utility Classes */
+.font-syne {
+  font-family: 'Syne', sans-serif;
+}
+
+.font-grotesk {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', serif;
+}
+
+.font-garamond {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.font-lora {
+  font-family: 'Lora', serif;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Stitch Hard Cast Shadow Utilities */
+.shadow-brutal-sm {
+  box-shadow: 2px 2px 0px #111111;
+}
+
+.shadow-brutal-md {
+  box-shadow: 3px 3px 0px #111111;
+}
+
+.shadow-brutal-lg {
+  box-shadow: 5px 5px 0px #111111;
+}
+
+/* Tactile Active Press Effect */
+.btn-brutal-primary {
+  background-color: #C41E24;
+  color: #FFFFFF;
+  border: 3px solid #111111;
+  box-shadow: 3px 3px 0px #111111;
+  transition: all 0.08s ease-in-out;
+}
+
+.btn-brutal-primary:hover {
+  background-color: #A0151A;
+}
+
+.btn-brutal-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #111111;
+}
+
+.btn-brutal-secondary {
+  background-color: #FFFFFF;
+  color: #111111;
+  border: 2px solid #111111;
+  box-shadow: 3px 3px 0px #111111;
+  transition: all 0.08s ease-in-out;
+}
+
+.btn-brutal-secondary:hover {
+  background-color: #F5F2EB;
+}
+
+.btn-brutal-secondary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #111111;
+}
+
+.card-brutal {
+  background-color: #FFFFFF;
+  border: 2px solid #111111;
+  box-shadow: 4px 4px 0px #111111;
+}
+
+.input-brutal {
+  background-color: #FFFFFF;
+  border: 2px solid #111111;
+  box-shadow: 2px 2px 0px #111111;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-brutal:focus {
+  border-color: #C41E24;
+  box-shadow: 3px 3px 0px #111111;
+}

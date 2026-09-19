@@ -1,0 +1,35 @@
+{
+  "brand": {
+    "name": "AMORE",
+    "projectName": "Summer Campaign",
+    "year": 2026
+  },
+  "colors": {
+    "primary": "#0B0B0B",
+    "secondary": "#8F1117",
+    "accent": "#F5F1E8"
+  },
+  "typography": {
+    "display": "Cormorant Garamond",
+    "secondary": "Playfair Display",
+    "caption": "Inter"
+  },
+  "editing": {
+    "pacing": 85,
+    "styles": [
+      "Bold text overlays",
+      "Beat-sync transitions",
+      "Dynamic text"
+    ]
+  },
+  "wardrobe": {
+    "tone": "Casual / Clean / Youthful / Urban",
+    "colors": ["White", "Blue", "Black"],
+    "images": []
+  },
+  "background": {
+    "tone": "Urban / Natural / Social",
+    "locations": ["Street", "Cafe", "Outdoor"],
+    "images": []
+  }
+}
