@@ -17,10 +17,28 @@ async function generateViaPythonApi(req: NextRequest, pythonData: any, outputPpt
   const protocol = req.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
   const pyApiUrl = process.env.PYTHON_GENERATOR_URL || `${protocol}://${host}/api/generate_ppt`;
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Forward Vercel deployment protection and authentication headers
+  const cookie = req.headers.get("cookie");
+  if (cookie) headers["cookie"] = cookie;
+
+  const auth = req.headers.get("authorization");
+  if (auth) headers["authorization"] = auth;
+
+  const bypass = req.headers.get("x-vercel-protection-bypass");
+  if (bypass) headers["x-vercel-protection-bypass"] = bypass;
+
+  if (process.env.VERCEL_AUTOMATION_BYPASS_SECRET) {
+    headers["x-vercel-protection-bypass"] = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  }
+
   console.log(`[PPT Generator] Invoking Python engine at: ${pyApiUrl}`);
   const resp = await fetch(pyApiUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(pythonData),
   });
 
