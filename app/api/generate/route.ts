@@ -1,16 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile } from "fs/promises";
 import path from "path";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import crypto from "crypto";
-
 import { getUploadsDir, getGeneratedDir } from "@/lib/storage";
 
 const execFileAsync = promisify(execFile);
 
 function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
+async function generateViaPythonApi(req: NextRequest, pythonData: any, outputPptxPath: string) {
+  const host = req.headers.get("host") || "localhost:3000";
+  const protocol = req.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+  const pyApiUrl = process.env.PYTHON_GENERATOR_URL || `${protocol}://${host}/api/generate_ppt`;
+
+  console.log(`[PPT Generator] Invoking Python engine at: ${pyApiUrl}`);
+  const resp = await fetch(pyApiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(pythonData),
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`Python API responded with status ${resp.status}: ${errText}`);
+  }
+
+  const result = await resp.json();
+  if (!result.success || !result.pptx_base64) {
+    throw new Error(result.error || "Failed to receive valid presentation payload from Python engine.");
+  }
+
+  const pptxBuffer = Buffer.from(result.pptx_base64, "base64");
+  await writeFile(outputPptxPath, pptxBuffer);
 }
 
 export async function POST(req: NextRequest) {
@@ -50,28 +75,31 @@ export async function POST(req: NextRequest) {
     };
 
     const tempJsonName = `input_${crypto.randomBytes(6).toString("hex")}.json`;
-    const tempJsonPath = path.join(uploadsDir, tempJsonName);
-    const outputPptxPath = path.join(generatedDir, fileName);
+    const tempJsonPath = path.join(/*turbopackIgnore: true*/ uploadsDir, tempJsonName);
+    const outputPptxPath = path.join(/*turbopackIgnore: true*/ generatedDir, fileName);
 
     await writeFile(tempJsonPath, JSON.stringify(pythonData, null, 2), "utf-8");
 
-    const pythonScript = path.join(process.cwd(), "python", "main.py");
-    const pythonCmd = process.env.PYTHON_PATH || "python";
-
     try {
-      // Execute Python generator
-      try {
-        await execFileAsync(pythonCmd, [pythonScript, tempJsonPath, outputPptxPath], {
-          cwd: process.cwd(),
-        });
-      } catch (execErr: any) {
-        if (execErr?.code === "ENOENT" && pythonCmd === "python") {
-          // Fallback to python3 if python executable is not found on Linux/hosting environments
-          await execFileAsync("python3", [pythonScript, tempJsonPath, outputPptxPath], {
+      const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.PYTHON_GENERATOR_URL);
+
+      if (isServerless) {
+        await generateViaPythonApi(req, pythonData, outputPptxPath);
+      } else {
+        const pythonScript = path.join(process.cwd(), "python", "main.py");
+        const pythonCmd = process.env.PYTHON_PATH || "python";
+
+        try {
+          await execFileAsync(pythonCmd, [pythonScript, tempJsonPath, outputPptxPath], {
             cwd: process.cwd(),
           });
-        } else {
-          throw execErr;
+        } catch (execErr: any) {
+          if (execErr?.code === "ENOENT") {
+            // Fallback to internal Vercel Python API if python binary is not installed in child_process path
+            await generateViaPythonApi(req, pythonData, outputPptxPath);
+          } else {
+            throw execErr;
+          }
         }
       }
 
@@ -81,7 +109,6 @@ export async function POST(req: NextRequest) {
         downloadUrl: `/api/download/${encodeURIComponent(fileName)}`,
       });
     } finally {
-      // Clean up temporary input JSON file
       try {
         const { unlink } = await import("fs/promises");
         await unlink(tempJsonPath);
